@@ -11,9 +11,9 @@ import os
 from pathlib import Path
 
 # Configuration
-BASE_DIR = Path(__file__).parent
-DATABASE_PATH = BASE_DIR / "database.db"
-CSV_DIR = BASE_DIR / "data" / "retail_data"
+BASE_DIR = Path(__file__).parent.parent
+DATABASE_PATH = BASE_DIR / "database" / "database.db"
+CSV_DIR = BASE_DIR / "data"
 
 # CSV to Table mapping with column renaming
 CSV_MAPPING = {

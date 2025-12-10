@@ -11,3 +11,4 @@ matplotlib
 autogluon
 holidays
 flask
+vite
