@@ -1,0 +1,13 @@
+einops
+numpy
+pandas
+tqdm
+pyyaml
+boto3
+transformers
+datasets
+autogluon
+matplotlib
+autogluon
+holidays
+flask
