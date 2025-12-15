@@ -9,7 +9,7 @@ from backend.utils.database import (
 
 products_bp= Blueprint("products",__name__, url_prefix="/api/products")
 
-#Set a route for get_all_categories
+#Independ search
 @products_bp.route("/categories",methods=['GET'])
 def get_all_categories():
     """
@@ -73,6 +73,10 @@ def get_all_size():
     except Exception as e:
         return jsonify({"Error": str(e)}), 500
 
+
+
+
+# Depend search
 @products_bp.route('/sizes-filtered', methods=['GET'])
 def get_all_sizes_by_category_subcategory():
     """

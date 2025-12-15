@@ -17,51 +17,51 @@ export default function ForecastControls({
   const [loading, setLoading] = useState(false)
   const API_BASE = 'http://localhost:5000/api/products'
 
-  // Fetch categories on mount
-  useEffect(() => {
-    setLoading(true)
-    fetch(`${API_BASE}/categories`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'Success') {
-          setCategories(data.data.categories)
-        }
-      })
-      .catch(err => console.error('Error fetching categories:', err))
-      .finally(() => setLoading(false))
-  }, [])
+  // // Fetch categories
+  // useEffect(() => {
+  //   setLoading(true)
+  //   fetch(`${API_BASE}/categories`)
+  //     .then(res => res.json())
+  //     .then(data => {
+  //       if (data.status === 'Success') {
+  //         setCategories(data.data.categories)
+  //       }
+  //     })
+  //     .catch(err => console.error('Error fetching categories:', err))
+  //     .finally(() => setLoading(false))
+  // }, [])
 
-  // Fetch subcategories when category changes
-  useEffect(() => {
-    if (category) {
-      fetch(`${API_BASE}/subcategories-filtered?category=${category}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'Success') {
-            setSubCategories(data.data.sub_category)
-          }
-        })
-        .catch(err => console.error('Error fetching subcategories:', err))
-    } else {
-      setSubCategories([])
-    }
-  }, [category])
-
-  // Fetch sizes when category/subcategory changes
-  useEffect(() => {
-    if (category && subCategory) {
-      fetch(`${API_BASE}/sizes-filtered?category=${category}&sub_category=${subCategory}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'Success') {
-            setSizes(data.data.sizes)
-          }
-        })
-        .catch(err => console.error('Error fetching sizes:', err))
-    } else {
-      setSizes([])
-    }
-  }, [category, subCategory])
+  // // Fetch subcategories when category changes
+  // useEffect(() => {
+  //   if (category) {
+  //     fetch(`${API_BASE}/subcategories-filtered?category=${category}`)
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         if (data.status === 'Success') {
+  //           setSubCategories(data.data.sub_category)
+  //         }
+  //       })
+  //       .catch(err => console.error('Error fetching subcategories:', err))
+  //   } else {
+  //     setSubCategories([])
+  //   }
+  // }, [category])
+  //
+  // // Fetch sizes when category/subcategory changes
+  // useEffect(() => {
+  //   if (category && subCategory) {
+  //     fetch(`${API_BASE}/sizes-filtered?category=${category}&sub_category=${subCategory}`)
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         if (data.status === 'Success') {
+  //           setSizes(data.data.sizes)
+  //         }
+  //       })
+  //       .catch(err => console.error('Error fetching sizes:', err))
+  //   } else {
+  //     setSizes([])
+  //   }
+  // }, [category, subCategory])
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">

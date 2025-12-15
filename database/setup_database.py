@@ -4,7 +4,6 @@ Database Setup Script
 This script creates a SQLite database and loads CSV files into corresponding tables.
 It includes error handling and validation to ensure data integrity.
 """
-
 import sqlite3
 import pandas as pd
 import os
