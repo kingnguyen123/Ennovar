@@ -16,7 +16,7 @@ def query_db(sql, params=()):
     except Exception as e:
         print(f"Database error {e}")
         return pd.DataFrame()
-#Independent filter
+
 def get_categories():
     """Get all unique categories from products table"""
     sql = "SELECT DISTINCT category FROM products ORDER BY category"
@@ -34,30 +34,17 @@ def get_sizes():
     sql = "SELECT DISTINCT Size FROM transactions WHERE Size IS NOT NULL ORDER BY Size"
     return query_db(sql)
 
-
-#Dependent filter
-
-# def get_sizes_by_category(category):
-#     """Get all sizes for a given category"""
-#     sql = "SELECT DISTINCT t.Size FROM transactions t JOIN products p ON t.product_id = p.product_id WHERE p.category = ? ORDER BY t.Size"
-#     return query_db(sql, (category,))
-#
-# def get_size_by_subcategory(sub_category):
-#     """Get all sizes for a given sub_category"""
-#     sql = "SELECT DISTINCT t.Size FROM transactions t JOIN products p ON t.product_id = p.product_id WHERE p.sub_category = ? ORDER BY t.Size"
-#     return query_db(sql, (sub_category,))
-
 def get_subcategory_by_category(category):
     sql = "SELECT DISTINCT sub_category FROM products WHERE category = ? ORDER BY sub_category"
     return query_db(sql, (category,))
 
 def get_sizes_by_category_subcategory(category, sub_category):
     """Get sizes available for a specific category and sub_category"""
-    sql= "SELECT DISTINCT t.size FROM transactions t JOIN products p ON t.product_id = p.product_id WHERE p.category = ? AND p.sub_category= ? ORDER BY  t.size"
+    sql= "SELECT DISTINCT t.Size FROM transactions t JOIN products p ON t.product_id = p.product_id WHERE p.category = ? AND p.sub_category= ? ORDER BY t.Size"
     return query_db(sql, (category, sub_category))
 
 
-#Query the total sale of the products
+#Query for the total sales of the products
 def get_category_sales(category, start_date, end_date):
     """Get the total sales of each category"""
     query = """
@@ -88,36 +75,32 @@ def get_sub_category_sales(sub_category, start_date, end_date):
 
 
 def get_sub_category_sales_based_on_category(sub_category, start_date, end_date):
-    """Get the total sales of each sub_category based on category"""
-    query = """
-        SELECT
-            p.category,
-            p.sub_category,
-            SUM(t.invoice_total) AS total_sales
-        FROM products p
-        JOIN transactions t ON p.product_id = t.product_id
-        WHERE p.category = ?
-        AND t.transaction_date BETWEEN ? AND ?
-        GROUP BY p.category, p.sub_category
-        ORDER BY p.sub_category
+    query = """ \
+            SELECT p.category, \
+                   p.sub_category, \
+                   SUM(t.invoice_total) AS total_sales \
+            FROM products p \
+                     JOIN transactions t ON p.product_id = t.product_id \
+            WHERE p.sub_category = ? \
+                AND t.transaction_date BETWEEN ? AND ? \
+            GROUP BY p.category, p.sub_category \
+            ORDER BY p.sub_category
     """
     return query_db(query, (sub_category, start_date, end_date))
 
 
-def get_sub_category_sales_based_on_category_and_size(sub_category, start_date, end_date):
-    """Get the total sales of each sub_category based on category and size"""
-    query = """
-        SELECT
-            p.category,
-            p.sub_category,
-            t.Size,
-            SUM(t.invoice_total) AS total_sales
-        FROM products p
-        JOIN transactions t ON p.product_id = t.product_id
-        WHERE p.category = ?
-        AND t.Size = ?
-        AND t.transaction_date BETWEEN ? AND ?
-        GROUP BY p.category, p.sub_category, t.Size
-        ORDER BY p.sub_category, t.Size
+def get_sub_category_sales_based_on_category_and_size(sub_category, size, start_date, end_date):
+    query = """ \
+            SELECT p.category, \
+                   p.sub_category, \
+                   t.Size, \
+                   SUM(t.invoice_total) AS total_sales \
+            FROM products p \
+                     JOIN transactions t ON p.product_id = t.product_id \
+            WHERE p.sub_category = ? \
+                AND t.Size = ? \
+                AND t.transaction_date BETWEEN ? AND ? \
+            GROUP BY p.category, p.sub_category, t.Size \
+            ORDER BY p.sub_category, t.Size
     """
-    return query_db(query, (sub_category, start_date, end_date))
+    return query_db(query, (sub_category, size, start_date, end_date))
