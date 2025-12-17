@@ -1,21 +1,40 @@
 import React, { useState, useEffect } from 'react'
 
 export default function ForecastControls({
-  forecastRange,
+  timeframeType,
+  year,
+  month,
+  quarter,
+  week,
   category,
   subCategory,
   size,
-  onForecastChange,
+  onTimeframeTypeChange,
+  onYearChange,
+  onMonthChange,
+  onQuarterChange,
+  onWeekChange,
   onCategoryChange,
   onSubCategoryChange,
   onSizeChange
 }) {
-  const forecastOptions = ['Predicting 1 Week', 'Predicting 1 Month','Predicting 1 Quarter']
+  const timeframeTypes = ['Year', 'Quarter', 'Month', 'Week']
+  const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString())
+  const months = Array.from({ length: 12 }, (_, i) => ((i + 1).toString().padStart(2, '0')))
+  const quarters = ['Q1', 'Q2', 'Q3', 'Q4']
   const [categories, setCategories] = useState([])
   const [subCategories, setSubCategories] = useState([])
   const [sizes, setSizes] = useState([])
   const [loading, setLoading] = useState(false)
   const API_BASE = 'http://localhost:5000/api/products'
+
+  // Calculate weeks in selected month
+  const getWeeksInMonth = (yearVal, monthVal) => {
+    const firstDay = new Date(parseInt(yearVal), parseInt(monthVal) - 1, 1)
+    const lastDay = new Date(parseInt(yearVal), parseInt(monthVal), 0)
+    const weeksInMonth = Math.ceil((lastDay.getDate() + firstDay.getDay()) / 7)
+    return Array.from({ length: weeksInMonth }, (_, i) => (i + 1).toString())
+  }
 
   // Fetch categories
   useEffect(() => {
@@ -58,16 +77,17 @@ export default function ForecastControls({
   }, [category, subCategory])
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-      <div className="px-6 py-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Forecast Range</label>
+    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10 overflow-x-auto">
+      <div className="px-6 py-4 flex flex-col md:flex-row gap-3 items-start md:items-center min-w-min">
+        {/* Timeframe Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Timeframe Type</label>
           <select
-            value={forecastRange}
-            onChange={(e) => onForecastChange(e.target.value)}
-            className="dropdown-select w-full md:w-64"
+            value={timeframeType}
+            onChange={(e) => onTimeframeTypeChange(e.target.value)}
+            className="dropdown-select w-full md:w-36"
           >
-            {forecastOptions.map((option) => (
+            {timeframeTypes.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -75,12 +95,82 @@ export default function ForecastControls({
           </select>
         </div>
 
-        <div className="flex-1">
+        {/* Year */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+          <select
+            value={year}
+            onChange={(e) => onYearChange(e.target.value)}
+            className="dropdown-select w-full md:w-32"
+          >
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Quarter - Show if timeframe is Quarter or Month or Week */}
+        {(timeframeType === 'Quarter' || timeframeType === 'Month' || timeframeType === 'Week') && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
+            <select
+              value={quarter}
+              onChange={(e) => onQuarterChange(e.target.value)}
+              className="dropdown-select w-full md:w-32"
+            >
+              {quarters.map((q) => (
+                <option key={q} value={q}>
+                  {q}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Month - Show if timeframe is Month or Week */}
+        {(timeframeType === 'Month' || timeframeType === 'Week') && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Month</label>
+            <select
+              value={month}
+              onChange={(e) => onMonthChange(e.target.value)}
+              className="dropdown-select w-full md:w-32"
+            >
+              {months.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Week - Show if timeframe is Week */}
+        {timeframeType === 'Week' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Week</label>
+            <select
+              value={week}
+              onChange={(e) => onWeekChange(e.target.value)}
+              className="dropdown-select w-full md:w-32"
+            >
+              {getWeeksInMonth(year, month).map((w) => (
+                <option key={w} value={w}>
+                  Week {w}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
           <select
             value={category}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className="dropdown-select w-full md:w-64"
+            className="dropdown-select w-full md:w-44"
             disabled={loading || categories.length === 0}
           >
             <option value="" >
@@ -94,12 +184,12 @@ export default function ForecastControls({
           </select>
         </div>
 
-        <div className="flex-1">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Sub Category</label>
           <select
             value={subCategory}
             onChange={(e) => onSubCategoryChange(e.target.value)}
-            className="dropdown-select w-full md:w-64"
+            className="dropdown-select w-full md:w-44"
             disabled={!category || subCategories.length === 0}
           >
             <option value="" >
@@ -113,12 +203,12 @@ export default function ForecastControls({
           </select>
         </div>
 
-        <div className="flex-1">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
           <select
             value={size}
             onChange={(e) => onSizeChange(e.target.value)}
-            className="dropdown-select w-full md:w-64"
+            className="dropdown-select w-full md:w-44"
             disabled={!subCategory || sizes.length === 0}
           >
             <option value="" >

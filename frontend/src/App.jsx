@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ForecastControls from './components/ForecastControls'
 import MetricsPanel from './components/MetricsPanel'
 import InventoryBox from './components/InventoryBox'
@@ -7,27 +7,71 @@ import NewsPanel from './components/NewsPanel'
 import ChatBox from './components/ChatBox'
 
 export default function App() {
-  const [forecastRange, setForecastRange] = useState('Predicting 1 Week')
+  const [timeframeType, setTimeframeType] = useState('Month')
+  const [year, setYear] = useState(new Date().getFullYear().toString())
+  const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
+  const [quarter, setQuarter] = useState('Q1')
+  const [week, setWeek] = useState('1')
   const [category, setCategory] = useState('Apparel')
   const [subCategory, setSubCategory] = useState('Shirts')
   const [size, setSize] = useState('M')
-
-  // Mock data - Replace with real backend data
-  const mockData = {
-    totalSales: 125500,
+  const [salesData, setSalesData] = useState({
+    totalSales: 0,
     predictedTotalSales: 140750,
     currentInventory: 234,
-  }
+  })
+  const [loading, setLoading] = useState(false)
+
+  // Fetch sales data when filters change
+  const API_BASE = 'http://localhost:5000/api/products'
+  
+  useEffect(() => {
+    if (category && subCategory && size) {
+      setLoading(true)
+      // Get last 30 days date range
+      const endDate = new Date().toISOString().split('T')[0]
+      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+      fetch(`${API_BASE}/sales/subcategory-by-category-size`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sub_category: subCategory,
+          size: size,
+          start_date: startDate,
+          end_date: endDate
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          const total = data.reduce((sum, item) => sum + (item.total_sales || 0), 0)
+          setSalesData(prev => ({
+            ...prev,
+            totalSales: total
+          }))
+        })
+        .catch(err => console.error('Error fetching sales:', err))
+        .finally(() => setLoading(false))
+    }
+  }, [category, subCategory, size])
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Top Control Bar */}
       <ForecastControls
-        forecastRange={forecastRange}
+        timeframeType={timeframeType}
+        year={year}
+        month={month}
+        quarter={quarter}
+        week={week}
         category={category}
         subCategory={subCategory}
         size={size}
-        onForecastChange={setForecastRange}
+        onTimeframeTypeChange={setTimeframeType}
+        onYearChange={setYear}
+        onMonthChange={setMonth}
+        onQuarterChange={setQuarter}
+        onWeekChange={setWeek}
         onCategoryChange={setCategory}
         onSubCategoryChange={setSubCategory}
         onSizeChange={setSize}
@@ -47,12 +91,14 @@ export default function App() {
                   <div>
                     <p className="text-gray-600 text-sm font-medium">Total Sales</p>
                     <p className="text-3xl font-bold text-gray-900 mt-2">
-                      ${mockData.totalSales.toLocaleString()}
+                      ${salesData.totalSales.toLocaleString()}
                     </p>
                   </div>
                   <div className="text-4xl text-blue-100">📊</div>
                 </div>
-                <div className="mt-4 text-xs text-gray-500">Last 30 days</div>
+                <div className="mt-4 text-xs text-gray-500">
+                  {loading ? 'Loading...' : 'Last 30 days'}
+                </div>
               </div>
 
               <div className="metric-box">
@@ -60,7 +106,7 @@ export default function App() {
                   <div>
                     <p className="text-gray-600 text-sm font-medium">Predicted Total Sales</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">
-                      ${mockData.predictedTotalSales.toLocaleString()}
+                      ${salesData.predictedTotalSales.toLocaleString()}
                     </p>
                   </div>
                   <div className="text-4xl text-green-100">🎯</div>
@@ -75,7 +121,7 @@ export default function App() {
                     <p className="text-gray-600 text-sm font-medium">Current Inventory</p>
                     <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {subCategory} ({size})</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">
-                      {mockData.currentInventory} units
+                      {salesData.currentInventory} units
                     </p>
                   </div>
                   <div className="text-4xl">📦</div>
