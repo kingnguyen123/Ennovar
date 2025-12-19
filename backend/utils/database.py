@@ -44,18 +44,29 @@ def get_sizes_by_category_subcategory(category, sub_category):
     return query_db(sql, (category, sub_category))
 
 
-#Query for the total sales of the products
+def get_year_range():
+    """Get min and max years from transactions table"""
+    sql = """
+        SELECT 
+            CAST(strftime('%Y', MIN(Date)) AS INTEGER) AS min_year,
+            CAST(strftime('%Y', MAX(Date)) AS INTEGER) AS max_year
+        FROM transactions
+    """
+    return query_db(sql)
+
+
+##Query for the total sales of the products
 def get_category_sales(category, start_date, end_date):
     """Get the total sales of each category"""
     query = """
         SELECT
-            p.category,
-            SUM(t.invoice_total) AS total_sales
-        FROM products p
-        JOIN transactions t ON p.product_id = t.product_id
+            SUM(t.[Line Total]) AS total_sales
+        FROM transactions t
+        JOIN products p
+            ON t.product_id = p.product_id
         WHERE p.category = ?
-        AND t.transaction_date BETWEEN ? AND ?
-        GROUP BY p.category
+          AND t.Date >= ?
+          AND t.Date < ?
     """
     return query_db(query, (category, start_date, end_date))
 
@@ -63,44 +74,43 @@ def get_sub_category_sales(sub_category, start_date, end_date):
     """Get the total sales of each sub_category"""
     query = """
         SELECT
-            p.sub_category,
-            SUM(t.invoice_total) AS total_sales
+            SUM(t.[Line Total]) AS total_sales
         FROM products p
         JOIN transactions t ON p.product_id = t.product_id
         WHERE p.sub_category = ?
-        AND t.transaction_date BETWEEN ? AND ?
-        GROUP BY p.sub_category
+        AND t.Date >= ?
+        AND t.Date < ?
     """
     return query_db(query, (sub_category, start_date, end_date))
 
 
 def get_sub_category_sales_based_on_category(sub_category, start_date, end_date):
-    query = """ \
-            SELECT p.category, \
-                   p.sub_category, \
-                   SUM(t.invoice_total) AS total_sales \
-            FROM products p \
-                     JOIN transactions t ON p.product_id = t.product_id \
-            WHERE p.sub_category = ? \
-                AND t.transaction_date BETWEEN ? AND ? \
-            GROUP BY p.category, p.sub_category \
+    query = """
+            SELECT p.category,
+                   p.sub_category,
+                   SUM(t.[Line Total]) AS total_sales
+            FROM products p
+                     JOIN transactions t ON p.product_id = t.product_id
+            WHERE p.sub_category = ?
+                AND t.Date >= ?
+                AND t.Date < ?
+            GROUP BY p.category, p.sub_category
             ORDER BY p.sub_category
     """
     return query_db(query, (sub_category, start_date, end_date))
 
 
 def get_sub_category_sales_based_on_category_and_size(sub_category, size, start_date, end_date):
-    query = """ \
-            SELECT p.category, \
-                   p.sub_category, \
-                   t.Size, \
-                   SUM(t.invoice_total) AS total_sales \
-            FROM products p \
-                     JOIN transactions t ON p.product_id = t.product_id \
-            WHERE p.sub_category = ? \
-                AND t.Size = ? \
-                AND t.transaction_date BETWEEN ? AND ? \
-            GROUP BY p.category, p.sub_category, t.Size \
-            ORDER BY p.sub_category, t.Size
+    query = """
+            SELECT
+            SUM(t.[Line Total]) AS total_sales
+            FROM transactions t
+            JOIN products p
+                ON t.product_id = p.product_id
+            WHERE p.category = ?
+            AND p.sub_category = ?
+            AND t.Size = ?
+            AND t.Date >= ?
+            AND t.Date <  ?;
     """
     return query_db(query, (sub_category, size, start_date, end_date))

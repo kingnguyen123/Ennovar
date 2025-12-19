@@ -10,50 +10,129 @@ export default function App() {
   const [timeframeType, setTimeframeType] = useState('Month')
   const [year, setYear] = useState(new Date().getFullYear().toString())
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
-  const [quarter, setQuarter] = useState('Q1')
-  const [week, setWeek] = useState('1')
-  const [category, setCategory] = useState('Apparel')
-  const [subCategory, setSubCategory] = useState('Shirts')
-  const [size, setSize] = useState('M')
+  const [quarter, setQuarter] = useState('0')
+  const [week, setWeek] = useState('0')
+  const [category, setCategory] = useState('0')
+  const [subCategory, setSubCategory] = useState('0')
+  const [Size, setSize] = useState('0')
   const [salesData, setSalesData] = useState({
     totalSales: 0,
-    predictedTotalSales: 140750,
-    currentInventory: 234,
+    predictedTotalSales: 0,
+    currentInventory: 0,
   })
   const [loading, setLoading] = useState(false)
+  const [yearRange, setYearRange] = useState({ min_year: 2024, max_year: 2024 })
+
+  // Fetch year range from database on component mount
+  useEffect(() => {
+    console.log('[App] Fetching year range from API...')
+    fetch('http://localhost:5000/api/sales/year-range')
+      .then(res => res.json())
+      .then(data => {
+        console.log('[App] Year range fetched:', data)
+        setYearRange(data)
+        setYear(data.max_year.toString())
+      })
+      .catch(err => console.error('[App ERROR] Error fetching year range:', err))
+  }, [])
+
+  // Calculate date range based on timeframe
+  const getDateRangeFromTimeframe = () => {
+    const yearNum = parseInt(year)
+    let startDate, endDate
+    
+    switch (timeframeType) {
+      case 'Year':
+        startDate = new Date(yearNum, 0, 1)
+        endDate = new Date(yearNum, 11, 31)
+        break
+      
+      case 'Quarter': {
+        const quarterNum = parseInt(quarter.replace('Q', ''))
+        startDate = new Date(yearNum, (quarterNum - 1) * 3, 1)
+        endDate = new Date(yearNum, quarterNum * 3, 0)
+        break
+      }
+      
+      case 'Month': {
+        const monthNum = parseInt(month)
+        startDate = new Date(yearNum, monthNum - 1, 1)
+        endDate = new Date(yearNum, monthNum, 0)
+        break
+      }
+      
+      case 'Week': {
+        const monthNum = parseInt(month)
+        const weekNum = parseInt(week)
+        const firstDay = new Date(yearNum, monthNum - 1, 1)
+        const dayOfWeek = firstDay.getDay()
+        
+        // Calculate the start of the first week
+        const firstWeekStart = new Date(firstDay)
+        firstWeekStart.setDate(firstDay.getDate() - dayOfWeek)
+        
+        // Calculate start and end of selected week
+        startDate = new Date(firstWeekStart)
+        startDate.setDate(firstWeekStart.getDate() + (weekNum - 1) * 7)
+        
+        endDate = new Date(startDate)
+        endDate.setDate(startDate.getDate() + 6)
+        break
+      }
+      
+      default:
+        // Default to last 30 days
+        endDate = new Date()
+        startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    }
+    
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    }
+  }
 
   // Fetch sales data when filters change
-  const API_BASE = 'http://localhost:5000/api/products'
+  const API_BASE = 'http://localhost:5000/api/sales'
   
   useEffect(() => {
-    if (category && subCategory && size) {
+    if (category && subCategory && Size) {
       setLoading(true)
-      // Get last 30 days date range
-      const endDate = new Date().toISOString().split('T')[0]
-      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      const { startDate, endDate } = getDateRangeFromTimeframe()
+      console.log('[App] Filters changed:', { category, subCategory, Size, timeframeType, year, month, quarter, week })
+      console.log('[App] Date range:', { startDate, endDate })
+      console.log('[App] Fetching sales data from API...')
 
-      fetch(`${API_BASE}/sales/subcategory-by-category-size`, {
+      fetch(`${API_BASE}/subcategory-by-category-size`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sub_category: subCategory,
-          size: size,
+          size: Size,
           start_date: startDate,
           end_date: endDate
         })
       })
-        .then(res => res.json())
+        .then(res => {
+          console.log('[App] API response status:', res.status)
+          return res.json()
+        })
         .then(data => {
+          console.log('[App] Sales data received:', data)
           const total = data.reduce((sum, item) => sum + (item.total_sales || 0), 0)
+          console.log('[App] Calculated total sales:', total)
           setSalesData(prev => ({
             ...prev,
             totalSales: total
           }))
         })
-        .catch(err => console.error('Error fetching sales:', err))
-        .finally(() => setLoading(false))
+        .catch(err => console.error('[App ERROR] Error fetching sales:', err))
+        .finally(() => {
+          console.log('[App] Loading complete')
+          setLoading(false)
+        })
     }
-  }, [category, subCategory, size])
+  }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -66,7 +145,7 @@ export default function App() {
         week={week}
         category={category}
         subCategory={subCategory}
-        size={size}
+        size={Size}
         onTimeframeTypeChange={setTimeframeType}
         onYearChange={setYear}
         onMonthChange={setMonth}
@@ -75,6 +154,7 @@ export default function App() {
         onCategoryChange={setCategory}
         onSubCategoryChange={setSubCategory}
         onSizeChange={setSize}
+        yearRange={yearRange}
       />
 
       {/* Main Content */}
@@ -119,7 +199,7 @@ export default function App() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm font-medium">Current Inventory</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {subCategory} ({size})</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {subCategory} ({Size})</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">
                       {salesData.currentInventory} units
                     </p>

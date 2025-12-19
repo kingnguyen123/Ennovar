@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 
 export default function ForecastControls({
   timeframeType,
@@ -8,7 +8,7 @@ export default function ForecastControls({
   week,
   category,
   subCategory,
-  size,
+  Size,
   onTimeframeTypeChange,
   onYearChange,
   onMonthChange,
@@ -16,10 +16,18 @@ export default function ForecastControls({
   onWeekChange,
   onCategoryChange,
   onSubCategoryChange,
-  onSizeChange
+  onSizeChange,
+  yearRange
 }) {
   const timeframeTypes = ['Year', 'Quarter', 'Month', 'Week']
-  const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString())
+  const years = useMemo(() => {
+    const minYear = yearRange?.min_year || 2024
+    const maxYear = yearRange?.max_year || 2024
+    return Array.from(
+      { length: maxYear - minYear + 1 },
+      (_, i) => (maxYear - i).toString()
+    )
+  }, [yearRange])
   const months = Array.from({ length: 12 }, (_, i) => ((i + 1).toString().padStart(2, '0')))
   const quarters = ['Q1', 'Q2', 'Q3', 'Q4']
   const [categories, setCategories] = useState([])
@@ -111,8 +119,8 @@ export default function ForecastControls({
           </select>
         </div>
 
-        {/* Quarter - Show if timeframe is Quarter or Month or Week */}
-        {(timeframeType === 'Quarter' || timeframeType === 'Month' || timeframeType === 'Week') && (
+        {/* Quarter - Show only if timeframe is Quarter */}
+        {timeframeType === 'Quarter' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
             <select
@@ -129,8 +137,8 @@ export default function ForecastControls({
           </div>
         )}
 
-        {/* Month - Show if timeframe is Month or Week */}
-        {(timeframeType === 'Month' || timeframeType === 'Week') && (
+        {/* Month - Show only if timeframe is Month */}
+        {timeframeType === 'Month' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Month</label>
             <select
@@ -192,9 +200,10 @@ export default function ForecastControls({
             className="dropdown-select w-full md:w-44"
             disabled={!category || subCategories.length === 0}
           >
-            <option value="" >
-              {!category ? 'Select category first' : 'Select a sub category'}
-            </option>
+            <option value="">Not select</option>
+            {!category ? (
+              <option disabled>Select category first</option>
+            ) : null}
             {subCategories.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -206,14 +215,15 @@ export default function ForecastControls({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
           <select
-            value={size}
+            value={Size}
             onChange={(e) => onSizeChange(e.target.value)}
             className="dropdown-select w-full md:w-44"
             disabled={!subCategory || sizes.length === 0}
           >
-            <option value="" >
-              {!subCategory ? 'Select subcategory first' : 'Select a size'}
-            </option>
+            <option value="">Not select</option>
+            {!subCategory ? (
+              <option disabled>Select subcategory first</option>
+            ) : null}
             {sizes.map((option) => (
               <option key={option} value={option}>
                 {option}
