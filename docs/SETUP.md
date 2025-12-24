@@ -217,10 +217,11 @@ data/
 
 2. **Run Database Setup Script**
 
+**Note**: Run this command from the project root directory.
+
 ```bash
 # From project root
-cd database
-python setup_database.py
+python database/setup_database.py
 ```
 
 Expected output:

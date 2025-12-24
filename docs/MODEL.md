@@ -178,11 +178,14 @@ df['is_weekend'] = df['day_of_week'].isin([5, 6])
 **Holiday Features**:
 ```python
 import holidays
+import numpy as np
 
 us_holidays = holidays.US(years=range(2020, 2024))
 df['is_holiday'] = df['date'].isin(us_holidays)
-df['days_to_holiday'] = # Calculate days until next holiday
-df['days_since_holiday'] = # Calculate days since last holiday
+
+# TODO: Implement holiday distance calculations
+# df['days_to_holiday'] = calculate_days_to_next_holiday(df['date'])
+# df['days_since_holiday'] = calculate_days_since_last_holiday(df['date'])
 ```
 
 **Seasonal Patterns**:

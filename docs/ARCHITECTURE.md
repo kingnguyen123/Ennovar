@@ -16,7 +16,7 @@ Ennovar is a full-stack application that combines a Flask REST API backend with 
 │  │  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │ │
 │  │  │   App.jsx    │  │  Components  │  │  TailwindCSS│  │ │
 │  │  │              │  │              │  │             │  │ │
-│  │  │ - State Mgmt │  │ - Controls   │  │ - Styling   │  │ │
+│  │  │ - State Mgmt.│  │ - Controls   │  │ - Styling   │  │ │
 │  │  │ - API calls  │  │ - Charts     │  │             │  │ │
 │  │  └──────────────┘  └──────────────┘  └─────────────┘  │ │
 │  └────────────────────────────────────────────────────────┘ │
