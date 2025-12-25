@@ -96,42 +96,80 @@ export default function App() {
   const API_BASE = 'http://localhost:5000/api/sales'
   
   useEffect(() => {
-    if (category && subCategory && Size) {
-      setLoading(true)
-      const { startDate, endDate } = getDateRangeFromTimeframe()
-      console.log('[App] Filters changed:', { category, subCategory, Size, timeframeType, year, month, quarter, week })
-      console.log('[App] Date range:', { startDate, endDate })
-      console.log('[App] Fetching sales data from API...')
+    // Only fetch if at least category and subCategory are selected
+    if (!category || !subCategory) {
+      setSalesData(prev => ({
+        ...prev,
+        totalSales: 0
+      }))
+      return
+    }
 
-      fetch(`${API_BASE}/subcategory-by-category-size`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sub_category: subCategory,
-          size: Size,
-          start_date: startDate,
-          end_date: endDate
-        })
+    setLoading(true)
+    const { startDate, endDate } = getDateRangeFromTimeframe()
+    console.log('[App] Filters changed:', { category, subCategory, Size, timeframeType, year, month, quarter, week })
+    console.log('[App] Date range:', { startDate, endDate })
+
+    // Choose endpoint based on whether size is selected
+    let endpoint, requestBody
+    if (Size) {
+      endpoint = `${API_BASE}/subcategory-by-category-size`
+      requestBody = {
+        category: category,
+        sub_category: subCategory,
+        size: Size,
+        start_date: startDate,
+        end_date: endDate
+      }
+      console.log('[App] Fetching with size filter...')
+    } else {
+      endpoint = `${API_BASE}/subcategory-by-category`
+      requestBody = {
+        category: category,
+        sub_category: subCategory,
+        start_date: startDate,
+        end_date: endDate
+      }
+      console.log('[App] Fetching without size filter...')
+    }
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    })
+      .then(res => {
+        console.log('[App] API response status:', res.status)
+        return res.json()
       })
-        .then(res => {
-          console.log('[App] API response status:', res.status)
-          return res.json()
-        })
-        .then(data => {
-          console.log('[App] Sales data received:', data)
-          const total = data.reduce((sum, item) => sum + (item.total_sales || 0), 0)
-          console.log('[App] Calculated total sales:', total)
+      .then(data => {
+        console.log('[App] Sales data received:', data)
+        if (!data || data.length === 0) {
+          console.warn('[App WARNING] No sales data returned')
           setSalesData(prev => ({
             ...prev,
-            totalSales: total
+            totalSales: 0
+          }))
+          return
+        }
+        const total = data[0]?.total_sales ?? 0
+        console.log('[App] Calculated total sales:', total)
+        setSalesData(prev => ({
+          ...prev,
+          totalSales: total
           }))
         })
-        .catch(err => console.error('[App ERROR] Error fetching sales:', err))
+        .catch(err => {
+          console.error('[App ERROR] Error fetching sales:', err)
+          setSalesData(prev => ({
+            ...prev,
+            totalSales: 0
+          }))
+        })
         .finally(() => {
           console.log('[App] Loading complete')
           setLoading(false)
         })
-    }
   }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
 
   return (
