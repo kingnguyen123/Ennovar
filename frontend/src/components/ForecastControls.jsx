@@ -141,35 +141,41 @@ export default function ForecastControls({
         {timeframeType === 'Month' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Month</label>
-            <select
+            <input
+              type="text"
               value={month}
-              onChange={(e) => onMonthChange(e.target.value)}
-              className="dropdown-select w-full md:w-32"
-            >
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === '') {
+                  onMonthChange('1')
+                } else if (/^\d+$/.test(val) && parseInt(val) >= 1 && parseInt(val) <= 12) {
+                  onMonthChange(val)
+                }
+              }}
+              className="dropdown-select w-full md:w-24 text-center"
+              placeholder="1-12"
+            />
           </div>
         )}
 
         {/* Week - Show if timeframe is Week */}
         {timeframeType === 'Week' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Week</label>
-            <select
+            <label className="block text-sm font-medium text-gray-700 mb-2">Week of Year</label>
+            <input
+              type="text"
               value={week}
-              onChange={(e) => onWeekChange(e.target.value)}
-              className="dropdown-select w-full md:w-32"
-            >
-              {getWeeksInMonth(year, month).map((w) => (
-                <option key={w} value={w}>
-                  Week {w}
-                </option>
-              ))}
-            </select>
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === '') {
+                  onWeekChange('1')
+                } else if (/^\d+$/.test(val) && parseInt(val) >= 1 && parseInt(val) <= 52) {
+                  onWeekChange(val)
+                }
+              }}
+              className="dropdown-select w-full md:w-24 text-center"
+              placeholder="1-52"
+            />
           </div>
         )}
 

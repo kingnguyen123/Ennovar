@@ -113,3 +113,32 @@ def get_sub_category_sales_based_on_category_and_size(category,sub_category, siz
             AND t.Date < ?;
     """
     return query_db(query, (category,sub_category, size, start_date, end_date))
+
+
+
+##Query for the inventory of the products
+def get_sub_category_inventory_based_on_category(category, sub_category):
+    query = """
+            SELECT
+            SUM(t.Quantity) AS "Current Inventory"
+            FROM transactions t
+            JOIN products p
+                ON t.product_id = p.product_id
+            WHERE p.category = ?
+            AND p.sub_category = ?;
+    """
+    return query_db(query, (category, sub_category))
+
+
+def get_sub_category_inventory_based_on_category_and_size(category,sub_category, size):
+    query = """
+            SELECT
+            SUM(t.Quantity) AS "Current Inventory"
+            FROM transactions t
+            JOIN products p
+                ON t.product_id = p.product_id
+            WHERE p.category = ?
+            AND p.sub_category = ?
+            AND t.Size = ?;
+            """
+    return query_db(query, (category,sub_category, size))

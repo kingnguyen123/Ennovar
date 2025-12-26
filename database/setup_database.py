@@ -51,6 +51,7 @@ CSV_MAPPING = {
             "Transaction ID": "id",
             "Product ID": "product_id",
             "Size":"Size",
+            "Quantity":"Quantity",
             "Unit Price":"Unit Price",
             "Date":"Date",
             "Discount":"Discount",

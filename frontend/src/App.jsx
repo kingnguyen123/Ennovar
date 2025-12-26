@@ -10,8 +10,8 @@ export default function App() {
   const [timeframeType, setTimeframeType] = useState('Month')
   const [year, setYear] = useState(new Date().getFullYear().toString())
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
-  const [quarter, setQuarter] = useState('0')
-  const [week, setWeek] = useState('0')
+  const [quarter, setQuarter] = useState('Q1')
+  const [week, setWeek] = useState('1')
   const [category, setCategory] = useState('0')
   const [subCategory, setSubCategory] = useState('0')
   const [Size, setSize] = useState('0')
@@ -62,14 +62,15 @@ export default function App() {
       }
       
       case 'Week': {
-        const monthNum = parseInt(month)
         const weekNum = parseInt(week)
-        const firstDay = new Date(yearNum, monthNum - 1, 1)
-        const dayOfWeek = firstDay.getDay()
+        // Calculate the start of the year
+        const firstDayOfYear = new Date(yearNum, 0, 1)
+        const dayOfWeek = firstDayOfYear.getDay()
         
-        // Calculate the start of the first week
-        const firstWeekStart = new Date(firstDay)
-        firstWeekStart.setDate(firstDay.getDate() - dayOfWeek)
+        // Calculate the start of week 1 (first Monday of the year)
+        const firstWeekStart = new Date(firstDayOfYear)
+        const daysToMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek) % 7
+        firstWeekStart.setDate(firstDayOfYear.getDate() + daysToMonday)
         
         // Calculate start and end of selected week
         startDate = new Date(firstWeekStart)
@@ -110,30 +111,27 @@ export default function App() {
     console.log('[App] Filters changed:', { category, subCategory, Size, timeframeType, year, month, quarter, week })
     console.log('[App] Date range:', { startDate, endDate })
 
-    // Choose endpoint based on whether size is selected
-    let endpoint, requestBody
-    if (Size) {
-      endpoint = `${API_BASE}/subcategory-by-category-size`
-      requestBody = {
-        category: category,
-        sub_category: subCategory,
-        size: Size,
-        start_date: startDate,
-        end_date: endDate
-      }
-      console.log('[App] Fetching with size filter...')
-    } else {
-      endpoint = `${API_BASE}/subcategory-by-category`
-      requestBody = {
-        category: category,
-        sub_category: subCategory,
-        start_date: startDate,
-        end_date: endDate
-      }
-      console.log('[App] Fetching without size filter...')
+    // Single endpoint handles both with and without size
+    const requestBody = {
+      category: category,
+      sub_category: subCategory,
+      size: Size || '',
+      start_date: startDate,
+      end_date: endDate
     }
+    console.log('[App] Fetching sales data...')
 
-    fetch(endpoint, {
+    // Old logic - removed (endpoint now handles both cases):
+    // let endpoint, requestBody
+    // if (Size) {
+    //   endpoint = `${API_BASE}/subcategory-by-category-size`
+    //   requestBody = { category, sub_category: subCategory, size: Size, start_date: startDate, end_date: endDate }
+    // } else {
+    //   endpoint = `${API_BASE}/subcategory-by-category`
+    //   requestBody = { category, sub_category: subCategory, start_date: startDate, end_date: endDate }
+    // }
+
+    fetch(`${API_BASE}/subcategory-by-category-size`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody)
@@ -171,6 +169,45 @@ export default function App() {
           setLoading(false)
         })
   }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
+
+  // Fetch inventory data separately (no time range needed)
+  useEffect(() => {
+    if (!category || !subCategory) {
+      setSalesData(prev => ({
+        ...prev,
+        currentInventory: 0
+      }))
+      return
+    }
+
+    console.log('[App] Fetching inventory data...')
+    fetch('http://localhost:5000/api/inventory/subcategory-by-category-size', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category: category,
+        sub_category: subCategory,
+        size: Size || ''
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log('[App] Inventory data received:', data)
+        const inventory = data[0]?.['Current Inventory'] ?? 0
+        console.log('[App] Current inventory:', inventory)
+        setSalesData(prev => ({
+          ...prev,
+          currentInventory: inventory
+        }))
+      })
+      .catch(err => {
+        console.error('[App ERROR] Error fetching inventory:', err)
+        setSalesData(prev => ({
+          ...prev,
+          currentInventory: 0
+        }))
+      })
+  }, [category, subCategory, Size])
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

@@ -69,28 +69,28 @@ def api_get_year_range():
 #     return jsonify(df.to_dict(orient='records'))
 
 
-@sales_bp.route("/subcategory-by-category", methods=['POST'])
-def api_get_sub_category_sales_based_on_category():
-    """
-    Get sales data for a specific sub-category filtered by its parent category within a date range.
-    
-    Expected JSON payload:
-        {
-            "sub_category": str - Product sub-category name
-            "start_date": str - Start date for sales data
-            "end_date": str - End date for sales data
-        }
-    
-    Returns:
-        JSON list of sales records for the specified sub-category with category context
-    """
-    data = request.get_json()
-    category = data.get('category')
-    sub_category = data.get('sub_category')
-    start_date = data.get('start_date')
-    end_date = data.get('end_date')
-    df = get_sub_category_sales_based_on_category(category=category,sub_category=sub_category, start_date=start_date, end_date=end_date)
-    return jsonify(df.to_dict(orient='records'))
+# @sales_bp.route("/subcategory-by-category", methods=['POST'])
+# def api_get_sub_category_sales_based_on_category():
+#     """
+#     Get sales data for a specific sub-category filtered by its parent category within a date range.
+#     
+#     Expected JSON payload:
+#         {
+#             "sub_category": str - Product sub-category name
+#             "start_date": str - Start date for sales data
+#             "end_date": str - End date for sales data
+#         }
+#     
+#     Returns:
+#         JSON list of sales records for the specified sub-category with category context
+#     """
+#     data = request.get_json()
+#     category = data.get('category')
+#     sub_category = data.get('sub_category')
+#     start_date = data.get('start_date')
+#     end_date = data.get('end_date')
+#     df = get_sub_category_sales_based_on_category(category=category,sub_category=sub_category, start_date=start_date, end_date=end_date)
+#     return jsonify(df.to_dict(orient='records'))
 
 
 @sales_bp.route("/subcategory-by-category-size", methods=['POST'])

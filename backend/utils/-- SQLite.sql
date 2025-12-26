@@ -1,7 +1,10 @@
 -- SQLite
-SELECT 
-            CAST(strftime('%Y', MIN(t.transaction_date)) AS INTEGER) AS min_year,
-            CAST(strftime('%Y', MAX(t.transaction_date)) AS INTEGER) AS max_year
-        FROM transactions t
-
+SELECT
+            SUM(t.Quantity) AS "Current Inventory"
+            FROM transactions t
+            JOIN products p
+                ON t.product_id = p.product_id
+            WHERE p.category = 'Feminine'
+            AND p.sub_category = 'Sportswear'
+            AND t.Size = 'M';
         
