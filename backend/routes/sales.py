@@ -4,7 +4,8 @@ from backend.utils.database import (
     # get_sub_category_sales,
     get_sub_category_sales_based_on_category,
     get_sub_category_sales_based_on_category_and_size,
-    get_year_range
+    get_year_range,
+    get_sales_pattern_by_date
 )
 import logging
 logger = logging.getLogger(__name__)
@@ -133,5 +134,40 @@ def api_get_sub_category_sales_based_on_category_and_size():
             start_date=start_date,
             end_date=end_date
         )
+    return jsonify(df.to_dict(orient='records'))
+
+
+@sales_bp.route("/sales-pattern", methods=['POST'])
+def api_get_sales_pattern():
+    """
+    Get daily sales pattern for a specific item within a date range.
+    
+    Expected JSON payload:
+        {
+            "category": str - Product category
+            "sub_category": str - Product sub-category name
+            "size": str - Product size (optional, if empty/'0' returns all sizes)
+            "start_date": str - Start date for sales data
+            "end_date": str - End date for sales data
+        }
+    
+    Returns:
+        JSON list of daily sales records with Date, total_sales, and total_quantity
+    """
+    data = request.get_json()
+    category = data.get('category')
+    sub_category = data.get('sub_category')
+    size = data.get('size', '')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    
+    df = get_sales_pattern_by_date(
+        category=category,
+        sub_category=sub_category,
+        size=size,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
     return jsonify(df.to_dict(orient='records'))
  

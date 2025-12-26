@@ -142,3 +142,45 @@ def get_sub_category_inventory_based_on_category_and_size(category,sub_category,
             AND t.Size = ?;
             """
     return query_db(query, (category,sub_category, size))
+
+
+def get_sales_pattern_by_date(category, sub_category, size, start_date, end_date):
+    """
+    Get daily sales pattern for a specific item within a date range.
+    Returns sales aggregated by date for time series visualization.
+    """
+    if not size or size == '0' or size == '':
+        # Without size filter - aggregate all sizes
+        query = """
+            SELECT
+                t.Date,
+                SUM(t.[Line Total]) AS total_sales,
+                SUM(t.Quantity) AS total_quantity
+            FROM transactions t
+            JOIN products p ON t.product_id = p.product_id
+            WHERE p.category = ?
+                AND p.sub_category = ?
+                AND t.Date >= ?
+                AND t.Date <= ?
+            GROUP BY t.Date
+            ORDER BY t.Date;
+        """
+        return query_db(query, (category, sub_category, start_date, end_date))
+    else:
+        # With size filter
+        query = """
+            SELECT
+                t.Date,
+                SUM(t.[Line Total]) AS total_sales,
+                SUM(t.Quantity) AS total_quantity
+            FROM transactions t
+            JOIN products p ON t.product_id = p.product_id
+            WHERE p.category = ?
+                AND p.sub_category = ?
+                AND t.Size = ?
+                AND t.Date >= ?
+                AND t.Date <= ?
+            GROUP BY t.Date
+            ORDER BY t.Date;
+        """
+        return query_db(query, (category, sub_category, size, start_date, end_date))

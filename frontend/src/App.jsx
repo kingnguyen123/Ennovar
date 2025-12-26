@@ -20,7 +20,9 @@ export default function App() {
     predictedTotalSales: 0,
     currentInventory: 0,
   })
+  const [salesPatternData, setSalesPatternData] = useState([])
   const [loading, setLoading] = useState(false)
+  const [chartLoading, setChartLoading] = useState(false)
   const [yearRange, setYearRange] = useState({ min_year: 2024, max_year: 2024 })
 
   // Fetch year range from database on component mount
@@ -170,6 +172,42 @@ export default function App() {
         })
   }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
 
+  // Fetch sales pattern data for chart
+  useEffect(() => {
+    if (!category || !subCategory) {
+      setSalesPatternData([])
+      return
+    }
+
+    setChartLoading(true)
+    const { startDate, endDate } = getDateRangeFromTimeframe()
+    console.log('[App] Fetching sales pattern data...')
+
+    fetch('http://localhost:5000/api/sales/sales-pattern', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category: category,
+        sub_category: subCategory,
+        size: Size || '',
+        start_date: startDate,
+        end_date: endDate
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log('[App] Sales pattern data received:', data)
+        setSalesPatternData(data)
+      })
+      .catch(err => {
+        console.error('[App ERROR] Error fetching sales pattern:', err)
+        setSalesPatternData([])
+      })
+      .finally(() => {
+        setChartLoading(false)
+      })
+  }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
+
   // Fetch inventory data separately (no time range needed)
   useEffect(() => {
     if (!category || !subCategory) {
@@ -293,7 +331,11 @@ export default function App() {
 
           {/* Chart Section */}
           <div className="px-6 py-6 flex-1">
-            <DashboardChart />
+            <DashboardChart 
+              salesPatternData={salesPatternData}
+              loading={chartLoading}
+              timeRange={`${timeframeType}: ${timeframeType === 'Year' ? year : timeframeType === 'Quarter' ? `${year} ${quarter}` : timeframeType === 'Week' ? `${year} Week ${week}` : `${year}-${month}`}`}
+            />
           </div>
         </div>
 
