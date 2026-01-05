@@ -56,7 +56,7 @@ export default function DashboardChart({ salesPatternData, loading, timeRange })
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
             <XAxis 
-              dataKey="Date" 
+              dataKey="sale_date" 
               tick={{ fill: '#6B7280', fontSize: 12 }}
               stroke="#9CA3AF"
             />
@@ -87,7 +87,7 @@ export default function DashboardChart({ salesPatternData, loading, timeRange })
             <div className="text-5xl mb-4">📈</div>
             <p className="text-gray-600 font-medium">No Sales Data Available</p>
             <p className="text-gray-500 text-sm mt-2">
-              Select category, sub-category, and time range to view sales patterns
+              Select category, product, and time range to view sales patterns
             </p>
           </div>
         </div>

@@ -7,16 +7,14 @@ export default function ForecastControls({
   quarter,
   week,
   category,
-  subCategory,
-  Size,
+  product,
   onTimeframeTypeChange,
   onYearChange,
   onMonthChange,
   onQuarterChange,
   onWeekChange,
   onCategoryChange,
-  onSubCategoryChange,
-  onSizeChange,
+  onProductChange,
   yearRange
 }) {
   const timeframeTypes = ['Year', 'Quarter', 'Month', 'Week']
@@ -31,8 +29,7 @@ export default function ForecastControls({
   const months = Array.from({ length: 12 }, (_, i) => ((i + 1).toString().padStart(2, '0')))
   const quarters = ['Q1', 'Q2', 'Q3', 'Q4']
   const [categories, setCategories] = useState([])
-  const [subCategories, setSubCategories] = useState([])
-  const [sizes, setSizes] = useState([])
+  const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const API_BASE = 'http://localhost:5000/api/products'
 
@@ -50,39 +47,25 @@ export default function ForecastControls({
     fetch(`${API_BASE}/categories`)
       .then(res => res.json())
       .then(data => {
-        setCategories(data.map(item => item.category))
+        setCategories(data.map(item => item.category_name))
       })
       .catch(err => console.error('Error fetching categories:', err))
       .finally(() => setLoading(false))
   }, [])
 
-  // Fetch subcategories when category changes
+  // Fetch products when category changes
   useEffect(() => {
     if (category) {
-      fetch(`${API_BASE}/subcategories/${category}`)
+      fetch(`${API_BASE}/products/${category}`)
         .then(res => res.json())
         .then(data => {
-          setSubCategories(data.map(item => item.sub_category))
+          setProducts(data.map(item => item.product_name))
         })
-        .catch(err => console.error('Error fetching subcategories:', err))
+        .catch(err => console.error('Error fetching products:', err))
     } else {
-      setSubCategories([])
+      setProducts([])
     }
   }, [category])
-
-  // Fetch sizes when category/subcategory changes
-  useEffect(() => {
-    if (category && subCategory) {
-      fetch(`${API_BASE}/sizes/${category}/${subCategory}`)
-        .then(res => res.json())
-        .then(data => {
-          setSizes(data.map(item => item.Size))
-        })
-        .catch(err => console.error('Error fetching sizes:', err))
-    } else {
-      setSizes([])
-    }
-  }, [category, subCategory])
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10 overflow-x-auto">
@@ -187,7 +170,7 @@ export default function ForecastControls({
             className="dropdown-select w-full md:w-44"
             disabled={loading || categories.length === 0}
           >
-            <option value="" >
+            <option value="">
               {loading ? 'Loading...' : 'Select a category'}
             </option>
             {categories.map((option) => (
@@ -199,38 +182,18 @@ export default function ForecastControls({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Sub Category</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Product</label>
           <select
-            value={subCategory}
-            onChange={(e) => onSubCategoryChange(e.target.value)}
+            value={product}
+            onChange={(e) => onProductChange(e.target.value)}
             className="dropdown-select w-full md:w-44"
-            disabled={!category || subCategories.length === 0}
+            disabled={!category || products.length === 0}
           >
-            <option value="">Not select</option>
+            <option value="">Select a product</option>
             {!category ? (
               <option disabled>Select category first</option>
             ) : null}
-            {subCategories.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
-          <select
-            value={Size}
-            onChange={(e) => onSizeChange(e.target.value)}
-            className="dropdown-select w-full md:w-44"
-            disabled={!subCategory || sizes.length === 0}
-          >
-            <option value="">Not select</option>
-            {!subCategory ? (
-              <option disabled>Select subcategory first</option>
-            ) : null}
-            {sizes.map((option) => (
+            {products.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>

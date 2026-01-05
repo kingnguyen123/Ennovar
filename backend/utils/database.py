@@ -3,14 +3,16 @@ import pandas as pd
 from typing import Optional
 from datetime import date, timedelta
 import calendar
+
 DB_PATH = "database/database.db"
+
 def query_db(sql, params=()):
     """
     Execute a SELECT query and return pandas DataFrame
     """
     try:
-        conn= sqlite3.connect(DB_PATH)
-        df= pd.read_sql_query(sql=sql, con=conn, params=params)
+        conn = sqlite3.connect(DB_PATH)
+        df = pd.read_sql_query(sql=sql, con=conn, params=params)
         conn.close()
         return df
     except Exception as e:
@@ -18,169 +20,73 @@ def query_db(sql, params=()):
         return pd.DataFrame()
 
 def get_categories():
-    """Get all unique categories from products table"""
-    sql = "SELECT DISTINCT category FROM products ORDER BY category"
+    """Get all unique categories from category table"""
+    sql = "SELECT DISTINCT category_name FROM category ORDER BY category_name"
     return query_db(sql)
 
 
-def get_subcategories():
-    """Get all subcategories"""
-    sql = "SELECT DISTINCT sub_category FROM products ORDER BY sub_category"
+def get_products():
+    """Get all products from products table"""
+    sql = "SELECT DISTINCT product_name FROM products ORDER BY product_name"
     return query_db(sql)
 
 
-def get_sizes():
-    """Get all unique sizes from transactions"""
-    sql = "SELECT DISTINCT Size FROM transactions WHERE Size IS NOT NULL ORDER BY Size"
-    return query_db(sql)
-
-def get_subcategory_by_category(category):
-    sql = "SELECT DISTINCT sub_category FROM products WHERE category = ? ORDER BY sub_category"
+def get_products_by_category(category):
+    """ Get the product based on category"""
+    sql = "SELECT DISTINCT p.product_name FROM products p INNER JOIN category c ON p.category_id = c.category_id WHERE c.category_name = ? ORDER BY p.product_name"
     return query_db(sql, (category,))
-
-def get_sizes_by_category_subcategory(category, sub_category):
-    """Get sizes available for a specific category and sub_category"""
-    sql= "SELECT DISTINCT t.Size FROM transactions t JOIN products p ON t.product_id = p.product_id WHERE p.category = ? AND p.sub_category= ? ORDER BY t.Size"
-    return query_db(sql, (category, sub_category))
 
 
 def get_year_range():
-    """Get min and max years from transactions table"""
+    """Get min and max years from sales table"""
     sql = """
         SELECT 
-            CAST(strftime('%Y', MIN(Date)) AS INTEGER) AS min_year,
-            CAST(strftime('%Y', MAX(Date)) AS INTEGER) AS max_year
-        FROM transactions
+            CAST(strftime('%Y', MIN(sale_date)) AS INTEGER) AS min_year,
+            CAST(strftime('%Y', MAX(sale_date)) AS INTEGER) AS max_year
+        FROM sales
     """
     return query_db(sql)
 
 
-##Query for the total sales of the products
-# def get_category_sales(category, start_date, end_date):
-#     """Get the total sales of each category"""
-#     query = """
-#         SELECT
-#             SUM(t.[Line Total]) AS total_sales
-#         FROM transactions t
-#         JOIN products p
-#             ON t.product_id = p.product_id
-#         WHERE p.category = ?
-#           AND t.Date >= ?
-#           AND t.Date < ?
-#     """
-#     return query_db(query, (category, start_date, end_date))
-
-# def get_sub_category_sales(sub_category, start_date, end_date):
-#     """Get the total sales of each sub_category"""
-#     query = """
-#         SELECT
-#             SUM(t.[Line Total]) AS total_sales
-#         FROM products p
-#         JOIN transactions t ON p.product_id = t.product_id
-#         WHERE p.sub_category = ?
-#         AND t.Date >= ?
-#         AND t.Date < ?
-#     """
-#     return query_db(query, (sub_category, start_date, end_date))
-
-
-def get_sub_category_sales_based_on_category(category,sub_category, start_date, end_date):
+def get_the_total_product_sales_based_on_category(category, product, start_date, end_date):
+    """return the total quantity sold, total revenue and price of that product"""
     query = """
-            SELECT
-            SUM(t.[Line Total]) AS total_sales
-            FROM transactions t
-            JOIN products p
-                ON t.product_id = p.product_id
-            WHERE p.category = ?
-            AND p.sub_category = ?
-            AND t.Date >= ?
-            AND t.Date <= ?;
+        SELECT 
+            p.product_name,
+            c.category_name,
+            SUM(s.quantity) AS total_quantity_sold,
+            p.price,
+            SUM(s.quantity * p.price) AS total_revenue
+        FROM sales s
+        INNER JOIN products p ON s.product_id = p.product_id
+        INNER JOIN category c ON p.category_id = c.category_id
+        WHERE c.category_name = ? 
+            AND p.product_name = ?
+            AND s.sale_date >= ?
+            AND s.sale_date <= ?
+        GROUP BY p.product_id, p.product_name, c.category_name, p.price
     """
-    return query_db(query, (category,sub_category, start_date, end_date))
+    return query_db(query, (category, product, start_date, end_date))
 
 
-def get_sub_category_sales_based_on_category_and_size(category,sub_category, size, start_date, end_date):
-    query = """
-            SELECT
-            SUM(t.[Line Total]) AS total_sales
-            FROM transactions t
-            JOIN products p
-                ON t.product_id = p.product_id
-            WHERE p.category = ?
-            AND p.sub_category = ?
-            AND t.Size = ?
-            AND t.Date >= ?
-            AND t.Date < ?;
+def get_sales_pattern_by_date(category, product, start_date, end_date):
     """
-    return query_db(query, (category,sub_category, size, start_date, end_date))
-
-
-
-##Query for the inventory of the products
-def get_sub_category_inventory_based_on_category(category, sub_category):
-    query = """
-            SELECT
-            SUM(t.Quantity) AS "Current Inventory"
-            FROM transactions t
-            JOIN products p
-                ON t.product_id = p.product_id
-            WHERE p.category = ?
-            AND p.sub_category = ?;
-    """
-    return query_db(query, (category, sub_category))
-
-
-def get_sub_category_inventory_based_on_category_and_size(category,sub_category, size):
-    query = """
-            SELECT
-            SUM(t.Quantity) AS "Current Inventory"
-            FROM transactions t
-            JOIN products p
-                ON t.product_id = p.product_id
-            WHERE p.category = ?
-            AND p.sub_category = ?
-            AND t.Size = ?;
-            """
-    return query_db(query, (category,sub_category, size))
-
-
-def get_sales_pattern_by_date(category, sub_category, size, start_date, end_date):
-    """
-    Get daily sales pattern for a specific item within a date range.
+    Get daily sales pattern for a specific product within a date range.
     Returns sales aggregated by date for time series visualization.
     """
-    if not size or size == '0' or size == '':
-        # Without size filter - aggregate all sizes
-        query = """
-            SELECT
-                t.Date,
-                SUM(t.[Line Total]) AS total_sales,
-                SUM(t.Quantity) AS total_quantity
-            FROM transactions t
-            JOIN products p ON t.product_id = p.product_id
-            WHERE p.category = ?
-                AND p.sub_category = ?
-                AND t.Date >= ?
-                AND t.Date <= ?
-            GROUP BY t.Date
-            ORDER BY t.Date;
-        """
-        return query_db(query, (category, sub_category, start_date, end_date))
-    else:
-        # With size filter
-        query = """
-            SELECT
-                t.Date,
-                SUM(t.[Line Total]) AS total_sales,
-                SUM(t.Quantity) AS total_quantity
-            FROM transactions t
-            JOIN products p ON t.product_id = p.product_id
-            WHERE p.category = ?
-                AND p.sub_category = ?
-                AND t.Size = ?
-                AND t.Date >= ?
-                AND t.Date <= ?
-            GROUP BY t.Date
-            ORDER BY t.Date;
-        """
-        return query_db(query, (category, sub_category, size, start_date, end_date))
+    query = """
+        SELECT
+            s.sale_date,
+            SUM(s.quantity * p.price) AS total_sales,
+            SUM(s.quantity) AS total_quantity
+        FROM sales s
+        INNER JOIN products p ON s.product_id = p.product_id
+        INNER JOIN category c ON p.category_id = c.category_id
+        WHERE c.category_name = ?
+            AND p.product_name = ?
+            AND s.sale_date >= ?
+            AND s.sale_date <= ?
+        GROUP BY s.sale_date
+        ORDER BY s.sale_date
+    """
+    return query_db(query, (category, product, start_date, end_date))

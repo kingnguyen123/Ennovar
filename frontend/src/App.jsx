@@ -12,9 +12,8 @@ export default function App() {
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
   const [quarter, setQuarter] = useState('Q1')
   const [week, setWeek] = useState('1')
-  const [category, setCategory] = useState('0')
-  const [subCategory, setSubCategory] = useState('0')
-  const [Size, setSize] = useState('0')
+  const [category, setCategory] = useState('')
+  const [product, setProduct] = useState('')
   const [salesData, setSalesData] = useState({
     totalSales: 0,
     predictedTotalSales: 0,
@@ -99,8 +98,8 @@ export default function App() {
   const API_BASE = 'http://localhost:5000/api/sales'
   
   useEffect(() => {
-    // Only fetch if at least category and subCategory are selected
-    if (!category || !subCategory) {
+    // Only fetch if category and product are selected
+    if (!category || !product) {
       setSalesData(prev => ({
         ...prev,
         totalSales: 0
@@ -110,30 +109,18 @@ export default function App() {
 
     setLoading(true)
     const { startDate, endDate } = getDateRangeFromTimeframe()
-    console.log('[App] Filters changed:', { category, subCategory, Size, timeframeType, year, month, quarter, week })
+    console.log('[App] Filters changed:', { category, product, timeframeType, year, month, quarter, week })
     console.log('[App] Date range:', { startDate, endDate })
 
-    // Single endpoint handles both with and without size
     const requestBody = {
       category: category,
-      sub_category: subCategory,
-      size: Size || '',
+      product: product,
       start_date: startDate,
       end_date: endDate
     }
     console.log('[App] Fetching sales data...')
 
-    // Old logic - removed (endpoint now handles both cases):
-    // let endpoint, requestBody
-    // if (Size) {
-    //   endpoint = `${API_BASE}/subcategory-by-category-size`
-    //   requestBody = { category, sub_category: subCategory, size: Size, start_date: startDate, end_date: endDate }
-    // } else {
-    //   endpoint = `${API_BASE}/subcategory-by-category`
-    //   requestBody = { category, sub_category: subCategory, start_date: startDate, end_date: endDate }
-    // }
-
-    fetch(`${API_BASE}/subcategory-by-category-size`, {
+    fetch(`${API_BASE}/product-sales`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody)
@@ -152,7 +139,7 @@ export default function App() {
           }))
           return
         }
-        const total = data[0]?.total_sales ?? 0
+        const total = data[0]?.total_revenue ?? 0
         console.log('[App] Calculated total sales:', total)
         setSalesData(prev => ({
           ...prev,
@@ -170,11 +157,11 @@ export default function App() {
           console.log('[App] Loading complete')
           setLoading(false)
         })
-  }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
+  }, [category, product, timeframeType, year, month, quarter, week])
 
   // Fetch sales pattern data for chart
   useEffect(() => {
-    if (!category || !subCategory) {
+    if (!category || !product) {
       setSalesPatternData([])
       return
     }
@@ -188,8 +175,7 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         category: category,
-        sub_category: subCategory,
-        size: Size || '',
+        product: product,
         start_date: startDate,
         end_date: endDate
       })
@@ -206,46 +192,16 @@ export default function App() {
       .finally(() => {
         setChartLoading(false)
       })
-  }, [category, subCategory, Size, timeframeType, year, month, quarter, week])
+  }, [category, product, timeframeType, year, month, quarter, week])
 
-  // Fetch inventory data separately (no time range needed)
+  // Note: Inventory endpoint removed - new schema doesn't have inventory table
+  // Setting inventory to 0 for now
   useEffect(() => {
-    if (!category || !subCategory) {
-      setSalesData(prev => ({
-        ...prev,
-        currentInventory: 0
-      }))
-      return
-    }
-
-    console.log('[App] Fetching inventory data...')
-    fetch('http://localhost:5000/api/inventory/subcategory-by-category-size', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        category: category,
-        sub_category: subCategory,
-        size: Size || ''
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log('[App] Inventory data received:', data)
-        const inventory = data[0]?.['Current Inventory'] ?? 0
-        console.log('[App] Current inventory:', inventory)
-        setSalesData(prev => ({
-          ...prev,
-          currentInventory: inventory
-        }))
-      })
-      .catch(err => {
-        console.error('[App ERROR] Error fetching inventory:', err)
-        setSalesData(prev => ({
-          ...prev,
-          currentInventory: 0
-        }))
-      })
-  }, [category, subCategory, Size])
+    setSalesData(prev => ({
+      ...prev,
+      currentInventory: 0
+    }))
+  }, [category, product])
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -257,16 +213,14 @@ export default function App() {
         quarter={quarter}
         week={week}
         category={category}
-        subCategory={subCategory}
-        size={Size}
+        product={product}
         onTimeframeTypeChange={setTimeframeType}
         onYearChange={setYear}
         onMonthChange={setMonth}
         onQuarterChange={setQuarter}
         onWeekChange={setWeek}
         onCategoryChange={setCategory}
-        onSubCategoryChange={setSubCategory}
-        onSizeChange={setSize}
+        onProductChange={setProduct}
         yearRange={yearRange}
       />
 
@@ -312,7 +266,7 @@ export default function App() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm font-medium">Current Inventory</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {subCategory} ({Size})</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {product}</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">
                       {salesData.currentInventory} units
                     </p>
