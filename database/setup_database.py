@@ -16,40 +16,71 @@ CSV_DIR = BASE_DIR / "data"
 
 # CSV to Table mapping with column renaming
 CSV_MAPPING = {
-    "category.csv": {
-        "table": "category",
-        "columns": {
-            "category_id": "category_id",
-            "category_name": "category_name"
-        }
-    },
     "products.csv": {
         "table": "products",
         "columns": {
-            "Product_ID": "product_id",
-            "Product_Name": "product_name",
-            "Category_ID": "category_id",
-            "Launch_Date": "launch_date",
-            "Price": "price"
+            "sku_id": "sku_id",
+            "product_name": "product_name",
+            "category": "category",
+            "sub_category": "sub_category",
+            "brand": "brand",
+            "product_type": "product_type",
+            "size_label": "size_label",
+            "launch_date": "launch_date",
+            "shelf_life_months": "shelf_life_months",
+            "parent_sku": "parent_sku",
+            "default_price": "default_price",
+            "primary_supplier_id": "primary_supplier_id",
+            "is_active": "is_active",
+            "country_of_origin": "country_of_origin",
+            "online_only": "online_only",
+            "avg_rating": "avg_rating",
+            "rating_count": "rating_count",
+            "is_discontinued": "is_discontinued"
         }
     },
     "sales.csv": {
         "table": "sales",
         "columns": {
             "sale_id": "sale_id",
-            "sale_date": "sale_date",
-            "store_id": "store_id",
-            "product_id": "product_id",
-            "quantity": "quantity"
+            "order_id": "order_id",
+            "date": "date",
+            "sku_id": "sku_id",
+            "channel": "channel",
+            "quantity": "quantity",
+            "unit_price": "unit_price",
+            "promo_flag": "promo_flag",
+            "discount_pct": "discount_pct",
+            "event_name": "event_name",
+            "customer_segment_id": "customer_segment_id",
+            "customer_segment": "customer_segment",
+            "device_type": "device_type",
+            "payment_method": "payment_method",
+            "shipping_fee": "shipping_fee",
+            "voucher_amount": "voucher_amount",
+            "net_revenue": "net_revenue",
+            "returned_flag": "returned_flag",
+            "quarter_bucket": "quarter_bucket",
+            "month": "month"
         }
     },
-    "stores.csv": {
-        "table": "stores",
+    "purchase_orders.csv": {
+        "table": "purchase_orders",
         "columns": {
-            "Store_ID": "store_id",
-            "Store_Name": "store_name",
-            "City": "city",
-            "Country": "country"
+            "po_id": "po_id",
+            "sku_id": "sku_id",
+            "supplier_id": "supplier_id",
+            "po_date": "po_date",
+            "promised_delivery_date": "promised_delivery_date",
+            "delivery_date": "delivery_date",
+            "order_qty": "order_qty",
+            "unit_cost": "unit_cost",
+            "shipping_mode": "shipping_mode",
+            "status": "status",
+            "incoterm": "incoterm",
+            "currency": "currency",
+            "freight_cost": "freight_cost",
+            "duty_cost": "duty_cost"
         }
     }
 }
@@ -71,52 +102,80 @@ def create_tables(conn):
     try:
         cursor = conn.cursor()
 
-        # Create category table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS category (
-                category_id INTEGER PRIMARY KEY,
-                category_name TEXT NOT NULL
-            )
-        """)
-        print("✓ Created 'category' table")
-
         # Create products table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS products (
-                product_id INTEGER PRIMARY KEY,
+                sku_id TEXT PRIMARY KEY,
                 product_name TEXT NOT NULL,
-                category_id INTEGER,
+                category TEXT,
+                sub_category TEXT,
+                brand TEXT,
+                product_type TEXT,
+                size_label TEXT,
                 launch_date TEXT,
-                price REAL,
-                FOREIGN KEY (category_id) REFERENCES category(category_id)
+                shelf_life_months REAL,
+                parent_sku TEXT,
+                default_price REAL,
+                primary_supplier_id INTEGER,
+                is_active INTEGER,
+                country_of_origin TEXT,
+                online_only INTEGER,
+                avg_rating REAL,
+                rating_count INTEGER,
+                is_discontinued INTEGER
             )
         """)
         print("✓ Created 'products' table")
-
-        # Create stores table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS stores (
-                store_id INTEGER PRIMARY KEY,
-                store_name TEXT NOT NULL,
-                city TEXT,
-                country TEXT
-            )
-        """)
-        print("✓ Created 'stores' table")
 
         # Create sales table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sales (
                 sale_id INTEGER PRIMARY KEY,
-                sale_date TEXT NOT NULL,
-                store_id INTEGER,
-                product_id INTEGER,
+                order_id TEXT,
+                date TEXT NOT NULL,
+                sku_id TEXT,
+                channel TEXT,
                 quantity INTEGER,
-                FOREIGN KEY (store_id) REFERENCES stores(store_id),
-                FOREIGN KEY (product_id) REFERENCES products(product_id)
+                unit_price REAL,
+                promo_flag INTEGER,
+                discount_pct REAL,
+                event_name TEXT,
+                customer_segment_id INTEGER,
+                customer_segment TEXT,
+                device_type TEXT,
+                payment_method TEXT,
+                shipping_fee REAL,
+                voucher_amount REAL,
+                net_revenue REAL,
+                returned_flag INTEGER,
+                quarter_bucket TEXT,
+                month TEXT,
+                FOREIGN KEY (sku_id) REFERENCES products(sku_id)
             )
         """)
         print("✓ Created 'sales' table")
+
+        # Create purchase_orders table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS purchase_orders (
+                po_id TEXT PRIMARY KEY,
+                sku_id TEXT,
+                supplier_id INTEGER,
+                po_date TEXT,
+                promised_delivery_date TEXT,
+                delivery_date TEXT,
+                order_qty INTEGER,
+                unit_cost REAL,
+                shipping_mode TEXT,
+                status TEXT,
+                incoterm TEXT,
+                currency TEXT,
+                freight_cost REAL,
+                duty_cost REAL,
+                FOREIGN KEY (sku_id) REFERENCES products(sku_id)
+            )
+        """)
+        print("✓ Created 'purchase_orders' table")
 
         conn.commit()
         print("\n✓ All tables created successfully\n")
@@ -138,7 +197,7 @@ def load_csv_to_database(conn):
 
             # Read CSV file
             if not csv_path.exists():
-                print(f" Warning: {csv_file} not found at {csv_path}")
+                print(f"  Warning: {csv_file} not found at {csv_path}")
                 continue
 
             df = pd.read_csv(csv_path)
@@ -147,24 +206,10 @@ def load_csv_to_database(conn):
             # Select and rename columns
             available_columns = [col for col in column_mapping.keys() if col in df.columns]
             if not available_columns:
-                print(f" Warning: No matching columns found in {csv_file}")
+                print(f"  Warning: No matching columns found in {csv_file}")
                 continue
 
             df_subset = df[available_columns].copy()
-            
-            # Filter stores to only include United States
-            if table_name == "stores" and "Country" in df.columns:
-                original_count = len(df_subset)
-                df_subset = df[df["Country"] == "United States"][available_columns].copy()
-                print(f"  - Filtered stores: {original_count} -> {len(df_subset)} rows (Country == 'United States')")
-            
-            # Convert date format for sales table (DD-MM-YYYY to YYYY-MM-DD)
-            if table_name == "sales" and "sale_date" in column_mapping.values():
-                date_col = [k for k, v in column_mapping.items() if v == "sale_date"][0]
-                if date_col in df_subset.columns:
-                    df_subset[date_col] = pd.to_datetime(df_subset[date_col], format='%d-%m-%Y').dt.strftime('%Y-%m-%d')
-                    print(f"  - Converted date format from DD-MM-YYYY to YYYY-MM-DD")
-            
             df_subset.rename(columns=column_mapping, inplace=True)
 
             # Write to database
@@ -174,9 +219,9 @@ def load_csv_to_database(conn):
         except pd.errors.EmptyDataError:
             print(f"  ✗ Error: {csv_file} is empty")
         except KeyError as e:
-            print(f" Error: Missing column {e} in {csv_file}")
+            print(f"  ✗ Error: Missing column {e} in {csv_file}")
         except Exception as e:
-            print(f" Error loading {csv_file}: {e}")
+            print(f"  ✗ Error loading {csv_file}: {e}")
             raise
 
 

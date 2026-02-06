@@ -5,6 +5,7 @@ import InventoryBox from './components/InventoryBox'
 import DashboardChart from './components/DashboardChart'
 import NewsPanel from './components/NewsPanel'
 import ChatBox from './components/ChatBox'
+import ForecastPanel from './components/ForecastPanel'
 
 export default function App() {
   const [timeframeType, setTimeframeType] = useState('Month')
@@ -14,6 +15,7 @@ export default function App() {
   const [week, setWeek] = useState('1')
   const [category, setCategory] = useState('')
   const [product, setProduct] = useState('')
+  const [activeTab, setActiveTab] = useState('dashboard') // 'dashboard' or 'forecast'
   const [salesData, setSalesData] = useState({
     totalSales: 0,
     predictedTotalSales: 0,
@@ -224,87 +226,139 @@ export default function App() {
         yearRange={yearRange}
       />
 
+      {/* Tab Navigation */}
+      <div className="bg-white border-b border-gray-200 px-6">
+        <div className="flex gap-4">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-4 py-3 font-medium text-sm transition-colors relative ${
+              activeTab === 'dashboard'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            📊 Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('forecast')}
+            className={`px-4 py-3 font-medium text-sm transition-colors relative ${
+              activeTab === 'forecast'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🔮 Demand Forecast
+          </button>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 overflow-auto flex flex-col lg:flex-row">
-        {/* Left and Center Content */}
-        <div className="flex-1 flex flex-col overflow-auto">
-          {/* Metrics Section */}
-          <div className="px-6 pt-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Metrics Cards */}
-              <div className="metric-box">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Total Sales</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">
-                      ${salesData.totalSales.toLocaleString()}
-                    </p>
+        {activeTab === 'dashboard' ? (
+          <>
+            {/* Left and Center Content - Dashboard */}
+            <div className="flex-1 flex flex-col overflow-auto">
+              {/* Metrics Section */}
+              <div className="px-6 pt-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard Overview</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Metrics Cards */}
+                  <div className="metric-box">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-600 text-sm font-medium">Total Sales</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-2">
+                          ${salesData.totalSales.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-4xl text-blue-100">📊</div>
+                    </div>
+                    <div className="mt-4 text-xs text-gray-500">
+                      {loading ? 'Loading...' : 'Last 30 days'}
+                    </div>
                   </div>
-                  <div className="text-4xl text-blue-100">📊</div>
-                </div>
-                <div className="mt-4 text-xs text-gray-500">
-                  {loading ? 'Loading...' : 'Last 30 days'}
+
+                  <div className="metric-box">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-600 text-sm font-medium">Predicted Total Sales</p>
+                        <p className="text-3xl font-bold text-green-600 mt-2">
+                          ${salesData.predictedTotalSales.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-4xl text-green-100">🎯</div>
+                    </div>
+                    <div className="mt-4 text-xs text-gray-500">Based on current trend</div>
+                  </div>
+
+                  {/* Current Inventory Box */}
+                  <div className="metric-box">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-600 text-sm font-medium">Current Inventory</p>
+                        <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {product}</p>
+                        <p className="text-3xl font-bold text-green-600 mt-2">
+                          {salesData.currentInventory} units
+                        </p>
+                      </div>
+                      <div className="text-4xl">📦</div>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full text-green-600">
+                        High Stock
+                      </span>
+                      <span className="text-xs text-gray-500">Last updated: today</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="metric-box">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Predicted Total Sales</p>
-                    <p className="text-3xl font-bold text-green-600 mt-2">
-                      ${salesData.predictedTotalSales.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="text-4xl text-green-100">🎯</div>
-                </div>
-                <div className="mt-4 text-xs text-gray-500">Based on current trend</div>
-              </div>
-
-              {/* Current Inventory Box */}
-              <div className="metric-box">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">Current Inventory</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-2">{category} - {product}</p>
-                    <p className="text-3xl font-bold text-green-600 mt-2">
-                      {salesData.currentInventory} units
-                    </p>
-                  </div>
-                  <div className="text-4xl">📦</div>
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full text-green-600">
-                    High Stock
-                  </span>
-                  <span className="text-xs text-gray-500">Last updated: today</span>
-                </div>
+              {/* Chart Section */}
+              <div className="px-6 py-6 flex-1">
+                <DashboardChart 
+                  salesPatternData={salesPatternData}
+                  loading={chartLoading}
+                  timeRange={`${timeframeType}: ${timeframeType === 'Year' ? year : timeframeType === 'Quarter' ? `${year} ${quarter}` : timeframeType === 'Week' ? `${year} Week ${week}` : `${year}-${month}`}`}
+                />
               </div>
             </div>
-          </div>
 
-          {/* Chart Section */}
-          <div className="px-6 py-6 flex-1">
-            <DashboardChart 
-              salesPatternData={salesPatternData}
-              loading={chartLoading}
-              timeRange={`${timeframeType}: ${timeframeType === 'Year' ? year : timeframeType === 'Quarter' ? `${year} ${quarter}` : timeframeType === 'Week' ? `${year} Week ${week}` : `${year}-${month}`}`}
-            />
-          </div>
-        </div>
+            {/* Right Sidebar */}
+            <div className="w-full lg:w-80 border-l border-gray-200 flex flex-col divide-y divide-gray-200 bg-white">
+              {/* News Panel */}
+              <div className="flex-1 min-h-96 overflow-hidden">
+                <NewsPanel />
+              </div>
 
-        {/* Right Sidebar */}
-        <div className="w-full lg:w-80 border-l border-gray-200 flex flex-col divide-y divide-gray-200 bg-white">
-          {/* News Panel */}
-          <div className="flex-1 min-h-96 overflow-hidden">
-            <NewsPanel />
-          </div>
+              {/* Chat Box */}
+              <div className="flex-1 min-h-96 overflow-hidden">
+                <ChatBox />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Forecast View */}
+            <div className="flex-1 flex flex-col overflow-auto">
+              <div className="px-6 py-6">
+                <ForecastPanel />
+              </div>
+            </div>
 
-          {/* Chat Box */}
-          <div className="flex-1 min-h-96 overflow-hidden">
-            <ChatBox />
-          </div>
-        </div>
+            {/* Right Sidebar for Forecast */}
+            <div className="w-full lg:w-80 border-l border-gray-200 flex flex-col divide-y divide-gray-200 bg-white">
+              {/* News Panel */}
+              <div className="flex-1 min-h-96 overflow-hidden">
+                <NewsPanel />
+              </div>
+
+              {/* Chat Box */}
+              <div className="flex-1 min-h-96 overflow-hidden">
+                <ChatBox />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

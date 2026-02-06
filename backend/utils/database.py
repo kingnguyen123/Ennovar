@@ -20,9 +20,12 @@ def query_db(sql, params=()):
         return pd.DataFrame()
 
 def get_categories():
-    """Get all unique categories from category table"""
-    sql = "SELECT DISTINCT category_name FROM category ORDER BY category_name"
-    return query_db(sql)
+    """Get all unique categories from products table"""
+    sql = "SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category"
+    df = query_db(sql)
+    # Rename column to match expected format
+    df.rename(columns={'category': 'category_name'}, inplace=True)
+    return df
 
 
 def get_products():
@@ -32,8 +35,8 @@ def get_products():
 
 
 def get_products_by_category(category):
-    """ Get the product based on category"""
-    sql = "SELECT DISTINCT p.product_name FROM products p INNER JOIN category c ON p.category_id = c.category_id WHERE c.category_name = ? ORDER BY p.product_name"
+    """Get the products based on category"""
+    sql = "SELECT DISTINCT product_name FROM products WHERE category = ? ORDER BY product_name"
     return query_db(sql, (category,))
 
 
@@ -41,8 +44,8 @@ def get_year_range():
     """Get min and max years from sales table"""
     sql = """
         SELECT 
-            CAST(strftime('%Y', MIN(sale_date)) AS INTEGER) AS min_year,
-            CAST(strftime('%Y', MAX(sale_date)) AS INTEGER) AS max_year
+            CAST(strftime('%Y', MIN(date)) AS INTEGER) AS min_year,
+            CAST(strftime('%Y', MAX(date)) AS INTEGER) AS max_year
         FROM sales
     """
     return query_db(sql)
@@ -53,18 +56,17 @@ def get_the_total_product_sales_based_on_category(category, product, start_date,
     query = """
         SELECT 
             p.product_name,
-            c.category_name,
+            p.category AS category_name,
             SUM(s.quantity) AS total_quantity_sold,
-            p.price,
-            SUM(s.quantity * p.price) AS total_revenue
+            p.default_price AS price,
+            SUM(s.net_revenue) AS total_revenue
         FROM sales s
-        INNER JOIN products p ON s.product_id = p.product_id
-        INNER JOIN category c ON p.category_id = c.category_id
-        WHERE c.category_name = ? 
+        INNER JOIN products p ON s.sku_id = p.sku_id
+        WHERE p.category = ? 
             AND p.product_name = ?
-            AND s.sale_date >= ?
-            AND s.sale_date <= ?
-        GROUP BY p.product_id, p.product_name, c.category_name, p.price
+            AND s.date >= ?
+            AND s.date <= ?
+        GROUP BY p.sku_id, p.product_name, p.category, p.default_price
     """
     return query_db(query, (category, product, start_date, end_date))
 
@@ -76,17 +78,16 @@ def get_sales_pattern_by_date(category, product, start_date, end_date):
     """
     query = """
         SELECT
-            s.sale_date,
-            SUM(s.quantity * p.price) AS total_sales,
+            s.date AS sale_date,
+            SUM(s.net_revenue) AS total_sales,
             SUM(s.quantity) AS total_quantity
         FROM sales s
-        INNER JOIN products p ON s.product_id = p.product_id
-        INNER JOIN category c ON p.category_id = c.category_id
-        WHERE c.category_name = ?
+        INNER JOIN products p ON s.sku_id = p.sku_id
+        WHERE p.category = ?
             AND p.product_name = ?
-            AND s.sale_date >= ?
-            AND s.sale_date <= ?
-        GROUP BY s.sale_date
-        ORDER BY s.sale_date
+            AND s.date >= ?
+            AND s.date <= ?
+        GROUP BY s.date
+        ORDER BY s.date
     """
     return query_db(query, (category, product, start_date, end_date))
