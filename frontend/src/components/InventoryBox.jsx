@@ -23,7 +23,7 @@ export default function InventoryBox({ itemName, currentInventory }) {
             {currentInventory} units
           </p>
         </div>
-        <div className="text-4xl">📦</div>
+        <div className="text-4xl"></div>
       </div>
       <div className="mt-4 flex items-center justify-between">
         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColor[inventoryStatus]}`}>

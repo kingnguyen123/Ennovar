@@ -74,7 +74,7 @@ def train_and_save_model(data_path: str, model_dir: str = "saved_models",
     model.save_model(model_dir)
     
     print("\n" + "="*70)
-    print("✓ TRAINING PHASE COMPLETED SUCCESSFULLY")
+    print("TRAINING PHASE COMPLETED SUCCESSFULLY")
     print("="*70)
     print(f"\nModel artifacts saved to: {os.path.abspath(model_dir)}/")
     print("\nThe trained model is now ready for production inference.")
@@ -101,10 +101,10 @@ if __name__ == "__main__":
             val_days=14
         )
         
-        print("\n✓ Training script completed successfully!")
+        print("\nTraining script completed successfully!")
         
     except Exception as e:
-        print(f"\n✗ Error during training: {e}")
+        print(f"\nError during training: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

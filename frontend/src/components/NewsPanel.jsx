@@ -11,7 +11,7 @@ export default function NewsPanel() {
   return (
     <div className="sidebar-panel">
       <div className="border-b border-gray-200 p-4">
-        <h3 className="text-lg font-bold text-gray-900">📰 News & Updates</h3>
+        <h3 className="text-lg font-bold text-gray-900">News & Updates</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto">

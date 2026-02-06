@@ -33,7 +33,7 @@ export default function ChatBox() {
   return (
     <div className="sidebar-panel">
       <div className="border-b border-gray-200 p-4">
-        <h3 className="text-lg font-bold text-gray-900">💬 Chat Assistant</h3>
+        <h3 className="text-lg font-bold text-gray-900">Chat Assistant</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

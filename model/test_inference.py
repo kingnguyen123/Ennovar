@@ -22,7 +22,7 @@ def test_inference():
     
     # Check if model exists
     if not os.path.exists(os.path.join(MODEL_DIR, "xgboost_model.json")):
-        print(f"\n✗ Error: No trained model found in '{MODEL_DIR}/'")
+        print(f"\nError: No trained model found in '{MODEL_DIR}/'")
         return False
     
     # Load model
@@ -79,7 +79,7 @@ def test_inference():
     
     # Print summary
     print("\n" + "="*70)
-    print("✓ INFERENCE TEST COMPLETED SUCCESSFULLY")
+    print("INFERENCE TEST COMPLETED SUCCESSFULLY")
     print("="*70)
     print("\nSummary of all forecast horizons:")
     for result in results:
@@ -92,13 +92,13 @@ if __name__ == "__main__":
     try:
         success = test_inference()
         if success:
-            print("\n✓ All tests passed!")
+            print("\nAll tests passed!")
             sys.exit(0)
         else:
-            print("\n✗ Tests failed!")
+            print("\nTests failed!")
             sys.exit(1)
     except Exception as e:
-        print(f"\n✗ Error during testing: {e}")
+        print(f"\nError during testing: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

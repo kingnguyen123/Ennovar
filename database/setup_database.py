@@ -90,10 +90,10 @@ def create_connection():
     """Create a connection to the SQLite database."""
     try:
         conn = sqlite3.connect(str(DATABASE_PATH))
-        print(f"✓ Connected to database: {DATABASE_PATH}")
+        print(f"Connected to database: {DATABASE_PATH}")
         return conn
     except sqlite3.Error as e:
-        print(f"✗ Error connecting to database: {e}")
+        print(f"Error connecting to database: {e}")
         raise
 
 
@@ -125,7 +125,7 @@ def create_tables(conn):
                 is_discontinued INTEGER
             )
         """)
-        print("✓ Created 'products' table")
+        print("Created 'products' table")
 
         # Create sales table
         cursor.execute("""
@@ -153,7 +153,7 @@ def create_tables(conn):
                 FOREIGN KEY (sku_id) REFERENCES products(sku_id)
             )
         """)
-        print("✓ Created 'sales' table")
+        print("Created 'sales' table")
 
         # Create purchase_orders table
         cursor.execute("""
@@ -175,13 +175,13 @@ def create_tables(conn):
                 FOREIGN KEY (sku_id) REFERENCES products(sku_id)
             )
         """)
-        print("✓ Created 'purchase_orders' table")
+        print("Created 'purchase_orders' table")
 
         conn.commit()
-        print("\n✓ All tables created successfully\n")
+        print("\nAll tables created successfully\n")
 
     except sqlite3.Error as e:
-        print(f"✗ Error creating tables: {e}")
+        print(f"Error creating tables: {e}")
         raise
 
 
@@ -214,14 +214,14 @@ def load_csv_to_database(conn):
 
             # Write to database
             df_subset.to_sql(table_name, conn, if_exists="replace", index=False)
-            print(f"  ✓ Loaded {len(df_subset)} rows into '{table_name}' table")
+            print(f"  Loaded {len(df_subset)} rows into '{table_name}' table")
 
         except pd.errors.EmptyDataError:
-            print(f"  ✗ Error: {csv_file} is empty")
+            print(f"  Error: {csv_file} is empty")
         except KeyError as e:
-            print(f"  ✗ Error: Missing column {e} in {csv_file}")
+            print(f"  Error: Missing column {e} in {csv_file}")
         except Exception as e:
-            print(f"  ✗ Error loading {csv_file}: {e}")
+            print(f"  Error loading {csv_file}: {e}")
             raise
 
 
@@ -235,7 +235,7 @@ def verify_database(conn):
             "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
         )
         tables = cursor.fetchall()
-        print(f"\n✓ Database contains {len(tables)} tables:")
+        print(f"\nDatabase contains {len(tables)} tables:")
 
         for table in tables:
             table_name = table[0]
@@ -244,7 +244,7 @@ def verify_database(conn):
             print(f"  - {table_name}: {count} rows")
 
     except sqlite3.Error as e:
-        print(f"✗ Error verifying database: {e}")
+        print(f"Error verifying database: {e}")
         raise
 
 
@@ -272,19 +272,19 @@ def main():
         verify_database(connection)
 
         print("\n" + "=" * 60)
-        print("✓ Database setup complete and all CSVs imported.")
+        print("Database setup complete and all CSVs imported.")
         print("=" * 60)
         print(f"\nDatabase location: {DATABASE_PATH}")
 
     except Exception as e:
-        print(f"\n✗ Setup failed with error: {e}")
+        print(f"\nSetup failed with error: {e}")
         if connection:
             connection.rollback()
 
     finally:
         if connection:
             connection.close()
-            print("✓ Database connection closed")
+            print("Database connection closed")
 
 
 if __name__ == "__main__":

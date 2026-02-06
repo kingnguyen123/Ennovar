@@ -350,7 +350,7 @@ class DemandForecastingModel:
             'params': params
         }
         
-        print("✓ Model training complete")
+        print("Model training complete")
     
     def evaluate(self, X: pd.DataFrame, y: pd.Series, dataset_name: str = "Dataset") -> Dict:
         """
@@ -410,33 +410,33 @@ class DemandForecastingModel:
         # Save XGBoost model
         model_path = os.path.join(model_dir, "xgboost_model.json")
         self.model.save_model(model_path)
-        print(f"✓ Saved XGBoost model to {model_path}")
+        print(f"Saved XGBoost model to {model_path}")
         
         # Save feature columns
         features_path = os.path.join(model_dir, "feature_columns.json")
         with open(features_path, 'w') as f:
             json.dump(self.feature_cols, f, indent=2)
-        print(f"✓ Saved feature columns to {features_path}")
+        print(f"Saved feature columns to {features_path}")
         
         # Save label encoders
         encoders_path = os.path.join(model_dir, "label_encoders.pkl")
         with open(encoders_path, 'wb') as f:
             pickle.dump(self.label_encoders, f)
-        print(f"✓ Saved label encoders to {encoders_path}")
+        print(f"Saved label encoders to {encoders_path}")
         
         # Save target transformer
         transformer_path = os.path.join(model_dir, "target_transformer.pkl")
         with open(transformer_path, 'wb') as f:
             pickle.dump(self.target_transformer, f)
-        print(f"✓ Saved target transformer to {transformer_path}")
+        print(f"Saved target transformer to {transformer_path}")
         
         # Save metadata
         metadata_path = os.path.join(model_dir, "model_metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(self.model_metadata, f, indent=2)
-        print(f"✓ Saved model metadata to {metadata_path}")
+        print(f"Saved model metadata to {metadata_path}")
         
-        print(f"\n✓ Model successfully saved to {model_dir}/")
+        print(f"\nModel successfully saved to {model_dir}/")
     
     def load_model(self, model_dir: str = "saved_models") -> None:
         """
@@ -451,34 +451,34 @@ class DemandForecastingModel:
         model_path = os.path.join(model_dir, "xgboost_model.json")
         self.model = xgb.Booster()
         self.model.load_model(model_path)
-        print(f"✓ Loaded XGBoost model")
+        print(f"Loaded XGBoost model")
         
         # Load feature columns
         features_path = os.path.join(model_dir, "feature_columns.json")
         with open(features_path, 'r') as f:
             self.feature_cols = json.load(f)
-        print(f"✓ Loaded {len(self.feature_cols)} feature columns")
+        print(f"Loaded {len(self.feature_cols)} feature columns")
         
         # Load label encoders
         encoders_path = os.path.join(model_dir, "label_encoders.pkl")
         with open(encoders_path, 'rb') as f:
             self.label_encoders = pickle.load(f)
-        print(f"✓ Loaded label encoders")
+        print(f"Loaded label encoders")
         
         # Load target transformer
         transformer_path = os.path.join(model_dir, "target_transformer.pkl")
         with open(transformer_path, 'rb') as f:
             self.target_transformer = pickle.load(f)
-        print(f"✓ Loaded target transformer")
+        print(f"Loaded target transformer")
         
         # Load metadata
         metadata_path = os.path.join(model_dir, "model_metadata.json")
         with open(metadata_path, 'r') as f:
             self.model_metadata = json.load(f)
-        print(f"✓ Loaded model metadata")
+        print(f"Loaded model metadata")
         print(f"  Model trained at: {self.model_metadata.get('trained_at', 'Unknown')}")
         
-        print("\n✓ Model successfully loaded and ready for inference")
+        print("\nModel successfully loaded and ready for inference")
     
     def predict(self, df: pd.DataFrame) -> np.ndarray:
         """

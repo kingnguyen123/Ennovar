@@ -26,9 +26,9 @@ def get_model():
             model_dir = os.path.join(model_path, 'saved_models')
             _model.load_model(model_dir)
             _model_loaded = True
-            print("✓ Forecasting model loaded successfully")
+            print("Forecasting model loaded successfully")
         except Exception as e:
-            print(f"✗ Error loading forecasting model: {e}")
+            print(f"Error loading forecasting model: {e}")
             _model = None
     return _model
 

@@ -84,7 +84,7 @@ export default function DashboardChart({ salesPatternData, loading, timeRange })
       ) : (
         <div className="w-full h-80 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-5xl mb-4">📈</div>
+            <div className="text-5xl mb-4"></div>
             <p className="text-gray-600 font-medium">No Sales Data Available</p>
             <p className="text-gray-500 text-sm mt-2">
               Select category, product, and time range to view sales patterns

@@ -108,10 +108,10 @@ const ForecastPanel = () => {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">📊 Demand Forecast</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Demand Forecast</h2>
         {modelStatus && modelStatus.status === 'available' && (
           <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-            ✓ Model Ready
+            Model Ready
           </span>
         )}
       </div>
@@ -189,7 +189,7 @@ const ForecastPanel = () => {
             Generating Forecast...
           </span>
         ) : (
-          '🔮 Generate Forecast'
+          'Generate Forecast'
         )}
       </button>
 

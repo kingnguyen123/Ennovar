@@ -126,7 +126,7 @@ def save_forecast(results_df: pd.DataFrame, forecast_horizon: int,
     results_df = results_df[available_cols]
     
     results_df.to_csv(filepath, index=False)
-    print(f"\n✓ Forecast saved to: {filepath}")
+    print(f"\nForecast saved to: {filepath}")
     print(f"  Total predictions: {len(results_df):,}")
     print(f"  Date range: {results_df['Date'].min()} to {results_df['Date'].max()}")
     
@@ -146,7 +146,7 @@ def run_production_inference():
     
     # Check if model exists
     if not os.path.exists(os.path.join(MODEL_DIR, "xgboost_model.json")):
-        print(f"\n✗ Error: No trained model found in '{MODEL_DIR}/'")
+        print(f"\nError: No trained model found in '{MODEL_DIR}/'")
         print("Please run 'python train_model.py' first to train the model.")
         sys.exit(1)
     
@@ -215,7 +215,7 @@ def run_production_inference():
     
     # Print summary
     print("\n" + "="*70)
-    print("✓ PRODUCTION INFERENCE COMPLETED SUCCESSFULLY")
+    print("PRODUCTION INFERENCE COMPLETED SUCCESSFULLY")
     print("="*70)
     print(f"\nGenerated forecasts for {len(horizons)} horizon(s):")
     for result in all_results:
@@ -228,14 +228,14 @@ def run_production_inference():
 if __name__ == "__main__":
     try:
         run_production_inference()
-        print("\n✓ Inference script completed successfully!")
+        print("\nInference script completed successfully!")
         
     except KeyboardInterrupt:
         print("\n\nOperation cancelled by user.")
         sys.exit(0)
         
     except Exception as e:
-        print(f"\n✗ Error during inference: {e}")
+        print(f"\nError during inference: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

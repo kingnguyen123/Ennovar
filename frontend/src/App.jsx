@@ -237,7 +237,7 @@ export default function App() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            📊 Dashboard
+            Dashboard
           </button>
           <button
             onClick={() => setActiveTab('forecast')}
@@ -247,7 +247,7 @@ export default function App() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            🔮 Demand Forecast
+            Demand Forecast
           </button>
         </div>
       </div>
@@ -271,7 +271,7 @@ export default function App() {
                           ${salesData.totalSales.toLocaleString()}
                         </p>
                       </div>
-                      <div className="text-4xl text-blue-100">📊</div>
+                      <div className="text-4xl text-blue-100"></div>
                     </div>
                     <div className="mt-4 text-xs text-gray-500">
                       {loading ? 'Loading...' : 'Last 30 days'}
@@ -286,7 +286,7 @@ export default function App() {
                           ${salesData.predictedTotalSales.toLocaleString()}
                         </p>
                       </div>
-                      <div className="text-4xl text-green-100">🎯</div>
+                      <div className="text-4xl text-green-100"></div>
                     </div>
                     <div className="mt-4 text-xs text-gray-500">Based on current trend</div>
                   </div>
@@ -301,7 +301,7 @@ export default function App() {
                           {salesData.currentInventory} units
                         </p>
                       </div>
-                      <div className="text-4xl">📦</div>
+                      <div className="text-4xl"></div>
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-xs font-semibold px-3 py-1 rounded-full text-green-600">
